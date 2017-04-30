@@ -16,6 +16,9 @@ class HDKingPacket(object):
 
 
 class HDKingPacketDummy(HDKingPacket):
+    def __init__(self):
+	self.opcode = 0
+
     def encode(self):
         pass
 
