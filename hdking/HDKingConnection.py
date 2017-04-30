@@ -48,11 +48,11 @@ class HDKingStatelessConnection(HDKingConnection):
                              packet.opcode)
         self.__stream.write(header + packet.buffer)
 
+
 class HDKingStatefulConnection(HDKingConnection):
     def __init__(self, stream):
         self.__prefix = 0xabcd
-        self.__packages = {
-        }
+        self.__packages = {}
         self.__stream = stream
 
     def receive(self):
@@ -68,7 +68,7 @@ class HDKingStatefulConnection(HDKingConnection):
             packet = self.__packages[opcode]()
         else:
             packet = HDKingPacketDummy()
-	    packet.opcode = opcode
+            packet.opcode = opcode
         packet.buffer = buffer
         packet.decode()
         return packet
