@@ -1,0 +1,13 @@
+language: python
+sudo: false
+python:
+  - "2.7"
+  - "3.5"
+cache: pip
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+script: 
+  nosetests --verbose --with-coverage --cover-package=hdking tests
+after_success:
+  coveralls
