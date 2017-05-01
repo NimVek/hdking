@@ -1,5 +1,6 @@
 import struct
 import binascii
+import pprint
 
 
 class HDKingPacket(object):
@@ -14,6 +15,12 @@ class HDKingPacket(object):
     def decode(self):
         raise NotImplementedError("AbstractMethod")
 
+    def __str__(self):
+        return pprint.pformat({self.__class__.__name__: self.content()})
+
+    def content(self):
+        return self.buffer
+
 
 class HDKingPacketDummy(HDKingPacket):
     def __init__(self):
@@ -25,12 +32,67 @@ class HDKingPacketDummy(HDKingPacket):
     def decode(self):
         pass
 
-    def __str__(self):
-        #        return binascii.hexlify(self.buffer) + '\n' + str(self.buffer)
-        return ''
+
+class HDKingPacketLoginRequest(HDKingPacket):
+    def __init__(self):
+        self.opcode = 0x110
+	self.username = 'admin'
+	self.password = '12345'
+
+    def decode(self):
+        pass
+
+    def encode(self):
+        self.buffer = self.username + '\0' * (64 - len(self.username)) + self.password + '\0' * (65 - len(self.password))
+
+    def content(self):
+        return None
+
+class HDKingPacketLoginResponse(HDKingPacket):
+    def __init__(self):
+        self.opcode = 0x111
+	self.username = 'admin'
+	self.password = '12345'
+
+    def decode(self):
+        pass
+
+    def encode(self):
+        self.buffer = self.username + '\0' * (64 - len(self.username)) + self.password + '\0' * (65 - len(self.password))
+
+    def content(self):
+        return None
 
 
-class HDKingPacketFindDeviceRequest(object):
+class HDKingPacketKeepAliveRequest(HDKingPacket):
+    def __init__(self):
+        self.opcode = 0x112
+
+    def decode(self):
+        pass
+
+    def encode(self):
+        self.buffer = ''
+
+    def content(self):
+        return None
+
+
+class HDKingPacketKeepAliveResponse(HDKingPacket):
+    def __init__(self):
+        self.opcode = 0x113
+
+    def decode(self):
+        pass
+
+    def encode(self):
+        self.buffer = ''
+
+    def content(self):
+        return None
+
+
+class HDKingPacketFindDeviceRequest(HDKingPacket):
     def __init__(self):
         self.opcode = 0x116
 
@@ -41,7 +103,7 @@ class HDKingPacketFindDeviceRequest(object):
         self.buffer = '\0' * 72
 
 
-class HDKingPacketFindDeviceResponse(object):
+class HDKingPacketFindDeviceResponse(HDKingPacket):
     def __init__(self):
         self.opcode = 0x115
 
@@ -52,5 +114,15 @@ class HDKingPacketFindDeviceResponse(object):
     def encode(self):
         self.buffer = self.uid + '\0' * (72 - len(self.uid))
 
-    def __str__(self):
-        return 'FindDeviceResponse: UID = %s' % self.uid
+    def content(self):
+        return {'uid': self.uid}
+
+
+class HDKingPacketVideoData(HDKingPacket):
+    def __init__(self):
+        self.opcode = 0x1
+
+
+class HDKingPacketAudioData(HDKingPacket):
+    def __init__(self):
+        self.opcode = 0x2

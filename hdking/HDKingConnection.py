@@ -17,21 +17,26 @@ class HDKingConnection(object):
 
 
 class HDKingStatelessConnection(HDKingConnection):
-    def __init__(self, stream):
+    def __init__(self, rfile, wfile):
         self.__prefix = 0xabcd
         self.__packages = {
+            0x110: HDKingPacketLoginRequest,
+            0x111: HDKingPacketLoginResponse,
+            0x112: HDKingPacketKeepAliveRequest,
+            0x113: HDKingPacketKeepAliveResponse,
             0x115: HDKingPacketFindDeviceResponse,
             0x116: HDKingPacketFindDeviceRequest,
         }
-        self.__stream = stream
+        self.__rfile = rfile
+        self.__wfile = wfile
 
     def receive(self):
-        header = self.__stream.read(8)
+        header = self.__rfile.read(8)
         if len(header) != 8:
             return None
         prefix, size, opcode = struct.unpack('!HHL', header)
         log.debug("Receive packet: opcode = %s, size %d" % (hex(opcode), size))
-        buffer = self.__stream.read(size)
+        buffer = self.__rfile.read(size)
         if len(buffer) != size:
             return None
         if opcode in self.__packages:
@@ -46,22 +51,23 @@ class HDKingStatelessConnection(HDKingConnection):
         packet.encode()
         header = struct.pack('!HHL', self.__prefix, len(packet.buffer),
                              packet.opcode)
-        self.__stream.write(header + packet.buffer)
+        self.__wfile.write(header + packet.buffer)
 
 
 class HDKingStatefulConnection(HDKingConnection):
-    def __init__(self, stream):
-        self.__prefix = 0xabcd
+    def __init__(self, rfile, wfile):
+        self.__prefix = 0xbcde
         self.__packages = {}
-        self.__stream = stream
+        self.__rfile = rfile
+        self.__wfile = wfile
 
     def receive(self):
-        header = self.__stream.read(8)
+        header = self.__rfile.read(8)
         if len(header) != 8:
             return None
         prefix, size, seq_nr, opcode = struct.unpack('!HHHH', header)
         log.debug("Receive packet: opcode = %s, size %d" % (hex(opcode), size))
-        buffer = self.__stream.read(size)
+        buffer = self.__rfile.read(size)
         if len(buffer) != size:
             return None
         if opcode in self.__packages:
@@ -77,4 +83,4 @@ class HDKingStatefulConnection(HDKingConnection):
         packet.encode()
         header = struct.pack('!HHL', self.__prefix, len(packet.buffer),
                              packet.opcode)
-        self.__stream.write(header + packet.buffer)
+        self.__wfile.write(header + packet.buffer)
